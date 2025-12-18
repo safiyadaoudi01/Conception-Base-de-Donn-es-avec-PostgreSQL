@@ -1,0 +1,325 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<project name="GML" database="PostgreSQL" id="f8b245d6-3516-4afe-b2ae-725c7cb01b28" >
+	<comment><![CDATA[Global Maritime Logistics (GML) est une entreprise internationale spécialisée dans le transport maritime de marchandises conteneurisées.]]></comment>
+	<schema name="schema_mcd" >
+		<table name="conteneur" prior="contene" >
+			<column name="iso" type="char" length="3" mandatory="y" />
+			<column name="type_conteneur" prior="type" type="varchar" length="200" />
+			<column name="statut" type="varchar" length="200" />
+			<column name="date_derniere_inspection" type="date" />
+			<column name="poids_max" type="decimal" length="10" decimal="2" />
+			<column name="id_marchandise_categorie" prior="id_marchandise(categorie)" type="integer" mandatory="y" />
+			<column name="emplacement" type="varchar" length="200" />
+			<index name="pk_conteneur" unique="PRIMARY_KEY" >
+				<column name="iso" />
+			</index>
+			<fk name="fk_conteneur_marchandise" to_schema="schema_mcd" to_table="marchandise" >
+				<fk_column name="id_marchandise_categorie" pk="id_marchandise" />
+			</fk>
+		</table>
+		<table name="escale" prior="esca" >
+			<column name="id_escale" type="integer" mandatory="y" />
+			<column name="ordre" type="integer" />
+			<column name="duree_estimee" type="decimal" length="10" decimal="2" />
+			<column name="distance_estimee" type="decimal" length="10" decimal="2" />
+			<column name="code_port" prior="locode" type="char" length="6" mandatory="y" />
+			<column name="id_route" type="integer" mandatory="y" />
+			<index name="pk_escale" unique="PRIMARY_KEY" >
+				<column name="id_escale" />
+			</index>
+			<fk name="fk_escale_port" to_schema="schema_mcd" to_table="port" options="" >
+				<fk_column name="code_port" pk="code_port" />
+			</fk>
+			<fk name="fk_escale_route" to_schema="schema_mcd" to_table="route" >
+				<fk_column name="id_route" pk="id_route" />
+			</fk>
+		</table>
+		<table name="evenement" prior="evenemen" >
+			<column name="id_evenement" type="integer" mandatory="y" />
+			<column name="type_event" prior="type" type="varchar" length="200" />
+			<column name="description" type="text" />
+			<column name="date_event" prior="date" type="date" />
+			<column name="gravite" type="varchar" length="200" />
+			<column name="imo_navire" type="char" length="7" />
+			<column name="code_port" prior="locode" type="char" length="6" />
+			<column name="iso_conteneur" type="char" length="3" />
+			<column name="id_expedition" type="integer" />
+			<column name="id_route" type="integer" />
+			<index name="pk_evenement" unique="PRIMARY_KEY" >
+				<column name="id_evenement" />
+			</index>
+			<fk name="fk_evenement_navire" to_schema="schema_mcd" to_table="navire" >
+				<fk_column name="imo_navire" pk="imo" />
+			</fk>
+			<fk name="fk_evenement_port" to_schema="schema_mcd" to_table="port" >
+				<fk_column name="code_port" pk="code_port" />
+			</fk>
+			<fk name="fk_evenement_conteneur" to_schema="schema_mcd" to_table="conteneur" >
+				<fk_column name="iso_conteneur" pk="iso" />
+			</fk>
+			<fk name="fk_evenement_expedition" to_schema="schema_mcd" to_table="expedition" >
+				<fk_column name="id_expedition" pk="id_expedition" />
+			</fk>
+			<fk name="fk_evenement_route" to_schema="schema_mcd" to_table="route" >
+				<fk_column name="id_route" pk="id_route" />
+			</fk>
+		</table>
+		<table name="expedition" prior="expeditio" >
+			<column name="id_expedition" type="integer" mandatory="y" />
+			<column name="client" type="varchar" length="200" />
+			<column name="status" type="varchar" length="200" />
+			<column name="date_creation" type="date" />
+			<column name="code_port_origine" prior="locode" type="char" length="6" mandatory="y" />
+			<column name="code_port_destination" prior="locode" type="char" length="6" mandatory="y" />
+			<column name="id_route" type="integer" mandatory="y" />
+			<index name="pk_expedition" unique="PRIMARY_KEY" >
+				<column name="id_expedition" />
+			</index>
+			<fk name="fk_expedition_port" to_schema="schema_mcd" to_table="port" >
+				<fk_column name="code_port_origine" pk="code_port" />
+			</fk>
+			<fk name="fk_expedition_port_0" to_schema="schema_mcd" to_table="port" >
+				<fk_column name="code_port_destination" pk="code_port" />
+			</fk>
+			<fk name="fk_expedition_route" to_schema="schema_mcd" to_table="route" >
+				<fk_column name="id_route" pk="id_route" />
+			</fk>
+		</table>
+		<table name="expedition_conteneur" prior="tbl" >
+			<column name="id_expedition_fk" type="integer" />
+			<column name="iso_conteneur_fk" type="char" length="3" />
+			<index name="idx_expedition_conteneur" unique="NORMAL" >
+				<column name="id_expedition_fk" />
+				<column name="iso_conteneur_fk" />
+			</index>
+			<fk name="fk_expedition_conteneur" to_schema="schema_mcd" to_table="expedition" >
+				<fk_column name="id_expedition_fk" pk="id_expedition" />
+			</fk>
+			<fk name="fk_expedition_conteneur_1" to_schema="schema_mcd" to_table="conteneur" >
+				<fk_column name="iso_conteneur_fk" pk="iso" />
+			</fk>
+		</table>
+		<table name="historique_statut_conteneur" prior="tbl" >
+			<column name="id_historique" type="integer" mandatory="y" />
+			<column name="ancien_statut" type="varchar" length="200" />
+			<column name="nouveau_statut" type="varchar" length="200" />
+			<column name="date_statut_conteneur" type="date" />
+			<column name="utilisateur" type="varchar" length="200" />
+			<column name="iso_conteneur" type="char" length="3" mandatory="y" />
+			<column name="id_expedition" type="integer" mandatory="y" />
+			<index name="pk_historique_statut_conteneur" unique="PRIMARY_KEY" >
+				<column name="id_historique" />
+			</index>
+			<fk name="fk_historique_statut_conteneur_conteneur" to_schema="schema_mcd" to_table="conteneur" >
+				<fk_column name="iso_conteneur" pk="iso" />
+			</fk>
+			<fk name="fk_historique_statut_conteneur_expedition" to_schema="schema_mcd" to_table="expedition" >
+				<fk_column name="id_expedition" pk="id_expedition" />
+			</fk>
+		</table>
+		<table name="marchandise" prior="marchandis" >
+			<column name="id_marchandise" type="integer" mandatory="y" />
+			<column name="nom" type="varchar" length="200" />
+			<column name="description" type="text" />
+			<column name="dangereux" type="boolean" />
+			<index name="pk_marchandise" unique="PRIMARY_KEY" >
+				<column name="id_marchandise" />
+			</index>
+		</table>
+		<table name="navire" prior="navi" >
+			<column name="imo" type="char" length="7" mandatory="y" />
+			<column name="nom" type="varchar" length="200" />
+			<column name="armateur" type="varchar" length="200" />
+			<column name="capacite_teu" type="decimal" length="10" decimal="2" />
+			<column name="type_navire" prior="type" type="varchar" length="200" />
+			<column name="etat" type="varchar" length="200" />
+			<index name="pk_navire" unique="PRIMARY_KEY" >
+				<column name="imo" />
+			</index>
+		</table>
+		<table name="port" prior="po" >
+			<column name="code_port" prior="locode" type="char" length="6" mandatory="y" />
+			<column name="nom" type="varchar" length="200" />
+			<column name="pays" type="varchar" length="200" />
+			<column name="categorie" type="varchar" length="200" />
+			<column name="capacite" type="integer" />
+			<column name="statut" type="varchar" length="200" />
+			<column name="localisation" type="json" />
+			<index name="pk_port" unique="PRIMARY_KEY" >
+				<column name="code_port" />
+			</index>
+		</table>
+		<table name="route" prior="rou" >
+			<column name="id_route" type="integer" mandatory="y" />
+			<column name="nom" type="varchar" length="200" />
+			<column name="frequence" type="decimal" length="10" decimal="2" />
+			<column name="statut" type="varchar" length="200" />
+			<index name="pk_route" unique="PRIMARY_KEY" >
+				<column name="id_route" />
+			</index>
+		</table>
+		<table name="segment_expedition" prior="tbl" >
+			<column name="id_segment" type="integer" mandatory="y" />
+			<column name="date_depart" type="date" />
+			<column name="date_arrivee_prevue" type="date" />
+			<column name="date_arrivee_reelle" type="date" />
+			<column name="id_expedition" type="integer" mandatory="y" />
+			<column name="imo_navire" type="char" length="7" mandatory="y" />
+			<index name="pk_segment_expedition" unique="PRIMARY_KEY" >
+				<column name="id_segment" />
+			</index>
+			<fk name="fk_segment_expedition_expedition" to_schema="schema_mcd" to_table="expedition" >
+				<fk_column name="id_expedition" pk="id_expedition" />
+			</fk>
+			<fk name="fk_segment_expedition_navire" to_schema="schema_mcd" to_table="navire" >
+				<fk_column name="imo_navire" pk="imo" />
+			</fk>
+		</table>
+	</schema>
+	<layout name="Default Diagram" id="2ff14eaa-6e5c-402b-a7d1-77471fee26ed" show_relation="columns" >
+		<entity schema="schema_mcd" name="escale" color="C1D8EE" x="266" y="95" />
+		<entity schema="schema_mcd" name="navire" color="C1D8EE" x="114" y="399" />
+		<entity schema="schema_mcd" name="historique_statut_conteneur" color="C1D8EE" x="266" y="741" />
+		<entity schema="schema_mcd" name="expedition" color="C1D8EE" x="950" y="304" />
+		<entity schema="schema_mcd" name="conteneur" color="C1D8EE" x="589" y="76" />
+		<entity schema="schema_mcd" name="port" color="C1D8EE" x="57" y="95" />
+		<entity schema="schema_mcd" name="route" color="C1D8EE" x="304" y="342" />
+		<entity schema="schema_mcd" name="marchandise" color="C1D8EE" x="551" y="304" />
+		<entity schema="schema_mcd" name="expedition_conteneur" color="C1D8EE" x="950" y="57" />
+		<entity schema="schema_mcd" name="evenement" color="C1D8EE" x="836" y="589" />
+		<entity schema="schema_mcd" name="segment_expedition" color="C1D8EE" x="513" y="494" />
+		<script name="SQL_Editor" id="b44f5206-8678-47ab-9cc5-e67683397660" language="SQL" >
+			<string><![CDATA[CREATE SCHEMA IF NOT EXISTS schema_mcd;
+
+CREATE  TABLE schema_mcd.marchandise ( 
+	id_marchandise       integer  NOT NULL  ,
+	nom                  varchar(200)    ,
+	description          text    ,
+	dangereux            boolean    ,
+	CONSTRAINT pk_marchandise PRIMARY KEY ( id_marchandise )
+ );
+
+CREATE  TABLE schema_mcd.navire ( 
+	imo                  char(7)  NOT NULL  ,
+	nom                  varchar(200)    ,
+	armateur             varchar(200)    ,
+	capacite_teu         decimal(10,2)    ,
+	type_navire          varchar(200)    ,
+	etat                 varchar(200)    ,
+	CONSTRAINT pk_navire PRIMARY KEY ( imo )
+ );
+
+CREATE  TABLE schema_mcd.port ( 
+	code_port            char(6)  NOT NULL  ,
+	nom                  varchar(200)    ,
+	pays                 varchar(200)    ,
+	categorie            varchar(200)    ,
+	capacite             integer    ,
+	statut               varchar(200)    ,
+	localisation         json    ,
+	CONSTRAINT pk_port PRIMARY KEY ( code_port )
+ );
+
+CREATE  TABLE schema_mcd.route ( 
+	id_route             integer  NOT NULL  ,
+	nom                  varchar(200)    ,
+	frequence            decimal(10,2)    ,
+	statut               varchar(200)    ,
+	CONSTRAINT pk_route PRIMARY KEY ( id_route )
+ );
+
+CREATE  TABLE schema_mcd.conteneur ( 
+	iso                  char(3)  NOT NULL  ,
+	type_conteneur       varchar(200)    ,
+	statut               varchar(200)    ,
+	date_derniere_inspection date    ,
+	poids_max            decimal(10,2)    ,
+	id_marchandise_categorie integer  NOT NULL  ,
+	emplacement          varchar(200)    ,
+	CONSTRAINT pk_conteneur PRIMARY KEY ( iso ),
+	CONSTRAINT fk_conteneur_marchandise FOREIGN KEY ( id_marchandise_categorie ) REFERENCES schema_mcd.marchandise( id_marchandise )   
+ );
+
+CREATE  TABLE schema_mcd.escale ( 
+	id_escale            integer  NOT NULL  ,
+	ordre                integer    ,
+	duree_estimee        decimal(10,2)    ,
+	distance_estimee     decimal(10,2)    ,
+	code_port            char(6)  NOT NULL  ,
+	id_route             integer  NOT NULL  ,
+	CONSTRAINT pk_escale PRIMARY KEY ( id_escale ),
+	CONSTRAINT fk_escale_port FOREIGN KEY ( code_port ) REFERENCES schema_mcd.port( code_port )   ,
+	CONSTRAINT fk_escale_route FOREIGN KEY ( id_route ) REFERENCES schema_mcd.route( id_route )   
+ );
+
+CREATE  TABLE schema_mcd.expedition ( 
+	id_expedition        integer  NOT NULL  ,
+	client               varchar(200)    ,
+	status               varchar(200)    ,
+	date_creation        date    ,
+	code_port_origine    char(6)  NOT NULL  ,
+	code_port_destination char(6)  NOT NULL  ,
+	id_route             integer  NOT NULL  ,
+	CONSTRAINT pk_expedition PRIMARY KEY ( id_expedition ),
+	CONSTRAINT fk_expedition_port FOREIGN KEY ( code_port_origine ) REFERENCES schema_mcd.port( code_port )   ,
+	CONSTRAINT fk_expedition_port_0 FOREIGN KEY ( code_port_destination ) REFERENCES schema_mcd.port( code_port )   ,
+	CONSTRAINT fk_expedition_route FOREIGN KEY ( id_route ) REFERENCES schema_mcd.route( id_route )   
+ );
+
+CREATE  TABLE schema_mcd.expedition_conteneur ( 
+	id_expedition_fk     integer    ,
+	iso_conteneur_fk     char(3)    ,
+	CONSTRAINT fk_expedition_conteneur FOREIGN KEY ( id_expedition_fk ) REFERENCES schema_mcd.expedition( id_expedition )   ,
+	CONSTRAINT fk_expedition_conteneur_1 FOREIGN KEY ( iso_conteneur_fk ) REFERENCES schema_mcd.conteneur( iso )   
+ );
+
+CREATE INDEX idx_expedition_conteneur ON schema_mcd.expedition_conteneur  ( id_expedition_fk, iso_conteneur_fk );
+
+CREATE  TABLE schema_mcd.historique_statut_conteneur ( 
+	id_historique        integer  NOT NULL  ,
+	ancien_statut        varchar(200)    ,
+	nouveau_statut       varchar(200)    ,
+	date_statut_conteneur date    ,
+	utilisateur          varchar(200)    ,
+	iso_conteneur        char(3)  NOT NULL  ,
+	id_expedition        integer  NOT NULL  ,
+	CONSTRAINT pk_historique_statut_conteneur PRIMARY KEY ( id_historique ),
+	CONSTRAINT fk_historique_statut_conteneur_conteneur FOREIGN KEY ( iso_conteneur ) REFERENCES schema_mcd.conteneur( iso )   ,
+	CONSTRAINT fk_historique_statut_conteneur_expedition FOREIGN KEY ( id_expedition ) REFERENCES schema_mcd.expedition( id_expedition )   
+ );
+
+CREATE  TABLE schema_mcd.segment_expedition ( 
+	id_segment           integer  NOT NULL  ,
+	date_depart          date    ,
+	date_arrivee_prevue  date    ,
+	date_arrivee_reelle  date    ,
+	id_expedition        integer  NOT NULL  ,
+	imo_navire           char(7)  NOT NULL  ,
+	CONSTRAINT pk_segment_expedition PRIMARY KEY ( id_segment ),
+	CONSTRAINT fk_segment_expedition_expedition FOREIGN KEY ( id_expedition ) REFERENCES schema_mcd.expedition( id_expedition )   ,
+	CONSTRAINT fk_segment_expedition_navire FOREIGN KEY ( imo_navire ) REFERENCES schema_mcd.navire( imo )   
+ );
+
+CREATE  TABLE schema_mcd.evenement ( 
+	id_evenement         integer  NOT NULL  ,
+	type_event           varchar(200)    ,
+	description          text    ,
+	date_event           date    ,
+	gravite              varchar(200)    ,
+	imo_navire           char(7)    ,
+	code_port            char(6)    ,
+	iso_conteneur        char(3)    ,
+	id_expedition        integer    ,
+	id_route             integer    ,
+	CONSTRAINT pk_evenement PRIMARY KEY ( id_evenement ),
+	CONSTRAINT fk_evenement_navire FOREIGN KEY ( imo_navire ) REFERENCES schema_mcd.navire( imo )   ,
+	CONSTRAINT fk_evenement_port FOREIGN KEY ( code_port ) REFERENCES schema_mcd.port( code_port )   ,
+	CONSTRAINT fk_evenement_conteneur FOREIGN KEY ( iso_conteneur ) REFERENCES schema_mcd.conteneur( iso )   ,
+	CONSTRAINT fk_evenement_expedition FOREIGN KEY ( id_expedition ) REFERENCES schema_mcd.expedition( id_expedition )   ,
+	CONSTRAINT fk_evenement_route FOREIGN KEY ( id_route ) REFERENCES schema_mcd.route( id_route )   
+ );
+
+]]></string>
+		</script>
+	</layout>
+</project>
