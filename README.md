@@ -132,7 +132,3 @@ Ces triggers garantissent la traçabilité et la fiabilité des données opérat
 * Historisation obligatoire des événements et des changements de statut
 * Aucune suppression autorisée sur les données critiques (événements)
 
----
-
-
-Ce projet fournit une **base de données PostgreSQL robuste, normalisée et orientée métier**, répondant aux exigences d’un système logistique maritime international. Il constitue un socle fiable pour les opérations, la traçabilité et l’analyse de données à grande échelle.
