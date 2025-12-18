@@ -1,155 +1,138 @@
-# Conception-Base-de-Données-avec-PostgreSQL - Global Maritime Logistics (GML)
+# Global Maritime Logistics (GML) – Base de données PostgreSQL
 
-## Présentation du Projet
+## 📌 Contexte du projet
 
-Ce projet consiste à concevoir et implémenter une **base de données relationnelle PostgreSQL** destinée à centraliser l’ensemble des opérations logistiques de **Global Maritime Logistics (GML)**, une entreprise internationale spécialisée dans le **transport maritime de marchandises conteneurisées**.
+Global Maritime Logistics (GML) est une entreprise internationale spécialisée dans le transport maritime de marchandises conteneurisées. L’entreprise gère :
 
-La base est pensée comme un **socle Data fiable**, normalisé et extensible, capable de supporter aussi bien les opérations métier que des **analyses de données futures** (reporting, BI, analytics).
-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+* Une flotte de navires opérant sur plusieurs zones géographiques
+* Un réseau global de ports partenaires
+* Un parc de conteneurs standards et spécialisés
+* Des routes maritimes régulières et des voyages ponctuels
+* Un système interne de suivi des opérations logistiques et des incidents
 
-## Contexte Métier
-
-GML gère :
-
-* une **flotte de navires** opérant sur plusieurs zones géographiques
-* un **réseau mondial de ports partenaires**
-* un **parc de conteneurs** (standards et spécialisés)
-* des **routes maritimes** régulières
-* des **expéditions** composées de plusieurs segments
-* des **événements logistiques** (retards, incidents, météo…)
-
-### Problématique
-
-Le système existant est fragmenté, ce qui limite :
-
-* la visibilité globale des flux
-* la traçabilité des opérations
-* la capacité d’analyse et d’aide à la décision
-
-## Objectifs du Projet
-
-* Concevoir une **base PostgreSQL unifiée**
-* Garantir :
-  * l’intégrité référentielle
-  * la cohérence métier
-  * la traçabilité des changements
-* Respecter strictement la **normalisation (1FN → 3FN)**
-* Implémenter les **contraintes métier** via :
-  * contraintes `CHECK`
-  * triggers en **PL/pgSQL**
-* Préparer la base pour des **analyses de données futures**
-
-## Modélisation des Données
-
-La conception repose sur trois niveaux de modélisation.
-
-
-| Modèle       | Description                                              |
-| ------------- | -------------------------------------------------------- |
-| **MCD**       | Entités métier et relations conceptuelles              |
-| **MLD / MRD** | Schéma relationnel avec clés primaires et étrangères |
-| **MPD**       | Implémentation physique PostgreSQL                      |
-
-### Entités principales
-
-* PORT
-* NAVIRE
-* ROUTE
-* ESCALE
-* EXPEDITION
-* SEGMENT\_EXPEDITION
-* CONTENEUR
-* MARCHANDISE
-* EVENEMENT\_LOGISTIQUE
-* HISTORIQUE\_STATUT\_CONTENEUR
-
-### Choix de conception
-
-* Utilisation de **types ENUM** pour standardiser les statuts métier
-* Séparation entre :
-  * **Expédition** (vision globale)
-  * **Segment d’expédition** (vision opérationnelle)
-* Gestion des relations N–N via des **tables associatives**
-* Historisation des statuts pour garantir la traçabilité
-
-## Implémentation PostgreSQL
-
-### 1️⃣ Création du schéma
-
-📄 `schema_creation.sql`
-
-* Création des tables
-* Définition des :
-  * `PRIMARY KEY`
-  * `FOREIGN KEY`
-  * contraintes `UNIQUE`
-  * contraintes `CHECK`
-* Respect strict des formes normales
+Le système existant étant fragmenté et limitant la visibilité globale, ce projet vise à concevoir une **base de données PostgreSQL unifiée**, robuste et évolutive.
 
 ---
 
-### 2️⃣ Contraintes Métier et Triggers
+## 🎯 Objectifs du projet
 
-Les règles métier complexes sont implémentées via **triggers PL/pgSQL**.
+* Centraliser toutes les entités logistiques dans une base PostgreSQL unique
+* Garantir l’intégrité, la cohérence et la traçabilité des données
+* Respecter strictement la normalisation (1FN → 3FN)
+* Assurer la performance via une stratégie d’indexation adaptée
+* Implémenter les règles métier et temporelles via **CHECK** et **TRIGGERS**
+* Permettre l’historisation des événements et des statuts
+* Faciliter les **analyses de données futures** (Data Analytics / BI)
+* Préparer la base à des extensions et intégrations futures
 
-#### Contraintes temporelles
+---
 
-* `date_arrivee_prevue ≥ date_depart`
-* `date_arrivee_reelle ≥ date_depart`
+## 🧱 Modélisation des données
 
-#### Audit et intégrité
+Le travail de conception couvre l’ensemble du cycle de modélisation :
 
-* Interdiction de **modifier ou supprimer** un événement logistique
-* Garantie de la **traçabilité des incidents**
+* **MCD (Modèle Conceptuel de Données)** : identification des entités métier et de leurs relations
+* **MRD (Modèle Relationnel de Données)** : traduction relationnelle avec clés primaires et étrangères
+* **MLD (Modèle Logique de Données)** : implémentation PostgreSQL normalisée
 
-#### Historisation automatique
+### Entités principales
 
-Chaque changement de statut d’un conteneur génère automatiquement :
+* `port`
+* `navire`
+* `route`
+* `escale`
+* `conteneur`
+* `marchandise`
+* `expedition`
+* `segment_expedition`
+* `evenement`
+* `historique_statut_conteneur`
 
-* l’ancien statut
-* le nouveau statut
-* la date du changement
-* l’utilisateur PostgreSQL
+Toutes les entités respectent les formes normales **N1 à N3**.
 
-## 🔐 Historisation & Audit
+---
 
-Le système met en place une **historisation automatique des statuts des conteneurs** via une table dédiée.
 
-Cette approche permet :
+### Modélisation dans DBSchema
 
-* un audit complet des changements
-* une analyse temporelle des flux logistiques
-* une meilleure traçabilité opérationnelle
+<img width="1099" height="830" alt="image" src="https://github.com/user-attachments/assets/b6240d78-604f-40c1-9a50-6fd1aec38898" />
 
-## ⚙️ Performance & Indexation
+## 🗂️ Structure du projet
 
-Bien que non exhaustive à ce stade, la stratégie de performance prévoit :
+```
+.
+├── create_databases.sql   # Création du schéma et des tables
+├── triggers.sql           # Contraintes métier, CHECK et triggers
+└── README.md              # Documentation du projet
+```
 
-* index sur les clés étrangères
-* index sur les colonnes de statut
-* index sur les colonnes de dates
+---
 
-Ces optimisations faciliteront :
+## 🛠️ Implémentation PostgreSQL
 
-* les jointures
-* les analyses
-* l’intégration avec des outils BI
+### 1️⃣ create_databases.sql
 
-## 📊 Perspectives d’Analyse de Données
+Ce fichier contient :
 
-La base de données permet :
+* Création du schéma `schema_mcd`
+* Création de toutes les tables métier
+* Définition des clés primaires et étrangères
+* Table d’association `expedition_conteneur`
+* Index pour l’optimisation des jointures (`idx_expedition_conteneur`)
 
-* l’analyse des délais de livraison
-* le suivi des incidents logistiques
-* l’évaluation des performances des routes et navires
-* l’analyse des statuts et mouvements des conteneurs
+Les relations assurent la cohérence entre :
 
-Elle constitue une base solide pour :
+* Expéditions ↔ Routes ↔ Ports
+* Expéditions ↔ Conteneurs
+* Segments ↔ Navires
+* Événements ↔ Contexte métier unique
 
-* dashboards BI
-* analyses KPI
-* projets Data Analytics
+---
 
-## ✅ Conclusion
+### 2️⃣ triggers.sql
 
-Ce projet fournit une **base de données robuste, normalisée et orientée Data**, répondant aux besoins opérationnels de GML tout en préparant l’entreprise à des usages analytiques futurs.
+Ce fichier implémente les **règles métier et contraintes avancées**.
+
+#### ✔️ Contraintes CHECK
+
+* Valeurs autorisées pour les statuts (navire, conteneur, expédition, route)
+* Typage contrôlé (type de navire, type de conteneur, catégorie de port)
+* Cohérence des statuts dans l’historique des conteneurs
+* Un événement concerne **une seule entité métier à la fois**
+* Contrainte temporelle :
+
+  * `date_arrivee_prevue ≥ date_depart`
+  * `date_arrivee_reelle ≥ date_depart`
+
+#### 🔒 Triggers métier
+
+* **Événements append-only** :
+
+  * Interdiction de mise à jour
+  * Interdiction de suppression
+* Auto-remplissage de la date d’événement si absente
+* Ordre strict et continu des escales pour une route donnée
+
+Ces triggers garantissent la traçabilité et la fiabilité des données opérationnelles.
+
+---
+
+## ⚡ Performance & Indexation
+
+* Index composite sur `expedition_conteneur (id_expedition_fk, iso_conteneur_fk)`
+* Clés étrangères indexables pour accélérer les jointures
+* Modèle optimisé pour requêtes analytiques futures (BI, reporting, IA)
+
+---
+
+## 🔐 Intégrité et sécurité des données
+
+* Intégrité référentielle assurée par PK / FK
+* Contraintes métier implémentées au niveau base
+* Historisation obligatoire des événements et des changements de statut
+* Aucune suppression autorisée sur les données critiques (événements)
+
+---
+
+
+Ce projet fournit une **base de données PostgreSQL robuste, normalisée et orientée métier**, répondant aux exigences d’un système logistique maritime international. Il constitue un socle fiable pour les opérations, la traçabilité et l’analyse de données à grande échelle.
